@@ -187,8 +187,8 @@ class Weapon(pygame.sprite.Sprite):
         dy += self.vel_y
 
         #check collision with floor
-        if self.rect.bottom + dy > 250:
-            dy = 250 - self.rect.bottom
+        if self.rect.bottom + dy > 330:
+            dy = 330 - self.rect.bottom
             self.in_air = False
 
         self.rect.x += dx

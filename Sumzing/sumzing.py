@@ -1,87 +1,63 @@
-import pygame, math
-from classes import Samurai
+import pygame
+from sys import exit
 
+#setting and elements------------------------------------------------------
 pygame.init()
-
-SCRN_W = 1000
-SCRN_H = 600
-
-#load image
-def load_img(img_id):
-    img = pygame.image.load(f'data/images/{img_id}.png').convert()
-    img.set_colorkey((0, 0, 0))
-    return img
-
-screen = pygame.display.set_mode((SCRN_W, SCRN_H))
-pygame.display.set_caption('Project Sumzing')
-pygame.display.set_icon(load_img('icon'))
-
-#set FPS
+fps = 60
+width = 800
+height = 400
+screen = pygame.display.set_mode((width, height))
 clock = pygame.time.Clock()
-FPS = 100
-
-#bg
-bg_img = load_img('bg')
-bg_img = pygame.transform.scale(bg_img, (1000, 600)) #resized bg
-def draw_bg():
-    screen.blit(bg_img, (0, 0))
+game_font = pygame.font.Font('data/font/DiaryOfAn8BitMage-lYDD.ttf', 50)
+border_font = pygame.font.Font('data/font/DiaryOfAn8BitMage-lYDD.ttf', 53)
 
 
+bg_surface = pygame.image.load('data/img/dark_sky.png').convert_alpha()
+ground_surface = pygame.image.load('data/img/dark_ground.png').convert_alpha()
 
-#hp bar
-def draw_hp(health, x, y):
-    ratio = health / 100
 
-    #hp color
-    if health <= 70 and health > 30:
-        hp_color = (255,153,18)
-    elif health <= 30:
-        hp_color = (220,20,60)
-    else:
-        hp_color = (127,255,0)
+#text-------------------------------------------------------==
+bord_surface = border_font.render('SUMZING', True, 'black')
+txt_surface = game_font.render('SUMZING', True, (255,187,255))
+#-------------------------------------------------------------
 
-    pygame.draw.rect(screen, (100, 100, 100), (x - 5, y - 5, 410, 40))
-    pygame.draw.rect(screen, (10, 10, 10), (x, y, 400, 30))
-    pygame.draw.rect(screen, hp_color, (x, y, 400 * ratio, 30))
 
 #char
-player = Samurai(200, 360)
-enemy = Samurai(700, 380)
+noleg_surface = pygame.image.load('data/img/snail/snail1.png').convert_alpha()
+def_noleg_x = 805
+noleg_rect = noleg_surface.get_rect(midbottom = (def_noleg_x, 285))
 
 
+player_surface = pygame.image.load('data/img/Player/player_stand.png').convert_alpha()
+player_rect = player_surface.get_rect(midbottom = (80, 285))
+#-------------------------------------------------------------
 
 
+#load img func
 
 
+pygame.display.set_caption('Sumzing')
 
-#game running
-run = True
-while run:
-
-    clock.tick(FPS)
-    
-    #mouse pos
-    mx, my = pygame.mouse.get_pos()
-
-    #draw bg
-    draw_bg()
-
-    #show hp
-    draw_hp(player.hp, 20, 20)
-    draw_hp(enemy.hp, 520, 20)
-
-    #move update
-    player.move(SCRN_W, SCRN_H, screen, enemy, mx, my)
-
-    #draw char
-    player.draw(screen)
-    enemy.draw(screen)
-
-    #event
+while True:
+    #draw element
+    #update
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            run = False
+            pygame.quit()
+            exit()
+    
+    screen.blit(bg_surface, (0, 0))
+    screen.blit(ground_surface, (0, 285))
+
+    screen.blit(bord_surface, (294, 26))
+    screen.blit(txt_surface, (300, 20))
+
+    noleg_rect.left = def_noleg_x if noleg_rect.left < -100 else noleg_rect.left - 4
+    screen.blit(noleg_surface, noleg_rect)
+
+    #player_rect.left = -40 if player_rect.left > 810 else player_rect.left + 6
+    screen.blit(player_surface, player_rect)
 
     pygame.display.update()
-
-pygame.quit()
+    fps += 0.1
+    clock.tick(fps)

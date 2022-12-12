@@ -27,11 +27,17 @@ def collisions(player, obstacles):
                 return False, True
     return True, False
 
-def player_animation():
+def player_animation(slide):
     global player_surface, player_index
     if player_rect.bottom < 285:
         #jump
         player_surface = player_jump
+    elif slide:
+        player_index += 0.1
+        if player_index >= len(player_slide):
+            player_index = 0
+        player_surface = player_slide[int(player_index)]
+
     else:
         #run
         player_index += 0.1
@@ -40,8 +46,8 @@ def player_animation():
         player_surface = player_run[int(player_index)]
 
 
-
-
+jump = False
+slide = False
 score = 0
 cnt = 0
 hi_score = 0
@@ -85,8 +91,8 @@ def get_score():
 #-------------------------------------------------------------
 #Obstacle
 #char
-noleg_frame1 = pygame.image.load('data/img/Noleg/nol_1.png').convert_alpha()
-noleg_frame2 = pygame.image.load('data/img/Noleg/nol_2.png').convert_alpha()
+noleg_frame1 = pygame.image.load('data/img/Noleg/nol1.png').convert_alpha()
+noleg_frame2 = pygame.image.load('data/img/Noleg/nol2.png').convert_alpha()
 noleg_frame = [noleg_frame1, noleg_frame2]
 noleg_index = 0
 noleg_surface = noleg_frame[noleg_index]
@@ -101,13 +107,18 @@ obstacle_rect_list = []
 
 #animation
 player_index = 0
-player_run1 = pygame.image.load('data/img/Player/player_run_1.png').convert_alpha()
-player_run2 = pygame.image.load('data/img/Player/player_run_2.png').convert_alpha()
+player_run1 = pygame.image.load('data/img/Player/player_run1.png').convert_alpha()
+player_run2 = pygame.image.load('data/img/Player/player_run2.png').convert_alpha()
 player_run = [player_run1, player_run2]
-player_jump = pygame.image.load('data/img/Player/player_run_1.png').convert_alpha()
+player_jump = pygame.image.load('data/img/Player/player_run1.png').convert_alpha()
+player_slide1 = pygame.image.load('data/img/Player/player_slide1.png').convert_alpha()
+player_slide2 = pygame.image.load('data/img/Player/player_slide2.png').convert_alpha()
+player_slide = [player_slide1, player_slide2]
 
+player_slide_surface = player_slide[player_index]
 player_surface = player_run[player_index]
 player_rect = player_surface.get_rect(midbottom = (80, 285))
+
 
 
 
@@ -149,8 +160,13 @@ while True:
         if game_active:
             if event.type == press:
             #jump
-                if event.key == pygame.K_SPACE and player_rect.bottom >= 285:
+                if (event.key == pygame.K_SPACE or event.key == pygame.K_UP) and player_rect.bottom >= 285 and jump == False:
+                    jump = True
+                    slide = False
                     player_gravity = -19
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s and player_rect.bottom <= 285:
+                    slide = True
+                    player_gravity += 19
                 if event.key == pygame.K_ESCAPE:
                     game_active = False
                     game_over = False
@@ -158,6 +174,14 @@ while True:
             if event.type == click:
                 if pygame.mouse.get_pressed() == (1, 0, 0) and player_rect.bottom >= 285:
                     player_gravity = -19
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_DOWN or event.key == pygame.K_s and player_rect.bottom == 330:
+                    slide = False
+                    jump = False
+                if event.key == pygame.K_SPACE or event.key == pygame.K_UP and player_rect.bottom >= 285 and jump == True:
+                    jump = False
+                    slide = False
+
             
             
         elif game_over:
@@ -203,17 +227,21 @@ while True:
         scr = get_score()
         if scr > hi_score:
             hi_score = scr
-
+ 
         #noleg_rect.left = def_noleg_x if noleg_rect.left < -100 else noleg_rect.left - spd
         #screen.blit(noleg_surface, noleg_rect)
         spd += 0.0025
 
         player_gravity += 1
         player_rect.y += player_gravity
-        if player_rect.bottom >= 285:
+        if player_rect.bottom >= 330 and slide == True:
+            player_rect.bottom = 330
+        elif player_rect.bottom >= 285 and slide == False:
             player_rect.bottom = 285
+        
 
-        player_animation()
+
+        player_animation(slide)
         screen.blit(player_surface, player_rect)
 
         #Obsta movement
@@ -224,6 +252,9 @@ while True:
         
 
     elif game_over:
+        player_gravity = 0
+        slide = False
+        player_rect.bottom = 285
         spd = 5
         screen.blit(bg_surface, (0, 0))
         screen.blit(ground_surface, (0, 285))

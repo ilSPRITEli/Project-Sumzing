@@ -26,6 +26,22 @@ def collisions(player, obstacles):
             if player.colliderect(obstacle_rect):
                 return False, True
     return True, False
+
+def player_animation():
+    global player_surface, player_index
+    if player_rect.bottom < 285:
+        #jump
+        player_surface = player_jump
+    else:
+        #run
+        player_index += 0.1
+        if player_index >= len(player_run):
+            player_index = 0
+        player_surface = player_run[int(player_index)]
+
+
+
+
 score = 0
 cnt = 0
 hi_score = 0
@@ -69,13 +85,31 @@ def get_score():
 #-------------------------------------------------------------
 #Obstacle
 #char
-noleg_surface = pygame.image.load('data/img/Noleg/nol1.png').convert_alpha()
-fly_surface = pygame.image.load('data/img/Fly/Fly1.png').convert_alpha()
+noleg_frame1 = pygame.image.load('data/img/Noleg/nol_1.png').convert_alpha()
+noleg_frame2 = pygame.image.load('data/img/Noleg/nol_2.png').convert_alpha()
+noleg_frame = [noleg_frame1, noleg_frame2]
+noleg_index = 0
+noleg_surface = noleg_frame[noleg_index]
+
+fly_frame1 = pygame.image.load('data/img/Fly/Fly1.png').convert_alpha()
+fly_frame2 = pygame.image.load('data/img/Fly/Fly2.png').convert_alpha()
+fly_frame = [fly_frame1, fly_frame2]
+fly_index = 0
+fly_surface = fly_frame[fly_index]
 
 obstacle_rect_list = []
 
-player_surface = pygame.image.load('data/img/Player/player_stand.png').convert_alpha()
+#animation
+player_index = 0
+player_run1 = pygame.image.load('data/img/Player/player_run_1.png').convert_alpha()
+player_run2 = pygame.image.load('data/img/Player/player_run_2.png').convert_alpha()
+player_run = [player_run1, player_run2]
+player_jump = pygame.image.load('data/img/Player/player_run_1.png').convert_alpha()
+
+player_surface = player_run[player_index]
 player_rect = player_surface.get_rect(midbottom = (80, 285))
+
+
 
 #gravity
 player_gravity = 0
@@ -95,6 +129,12 @@ pygame.display.set_caption('Sumzing')
 #Timer
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer, 1500)
+
+noleg_animation_timer = pygame.USEREVENT + 2
+pygame.time.set_timer(noleg_animation_timer, 500)
+
+fly_animation_timer = pygame.USEREVENT + 3
+pygame.time.set_timer(fly_animation_timer, 200)
 
 while True:
     #draw element
@@ -132,11 +172,26 @@ while True:
                 game_active = True
                 start_time = pygame.time.get_ticks()//100
 
-        if event.type == obstacle_timer and game_active:
-            if randint(0, 2):
-                obstacle_rect_list.append(noleg_surface.get_rect(midbottom = (randint(900, 1100), 285)))
-            else:
-                obstacle_rect_list.append(fly_surface.get_rect(midbottom = (randint(900, 1100), 210)))
+        if game_active:
+            if event.type == obstacle_timer:
+                if randint(0, 2):
+                    obstacle_rect_list.append(noleg_surface.get_rect(midbottom = (randint(900, 1100), 285)))
+                else:
+                    obstacle_rect_list.append(fly_surface.get_rect(midbottom = (randint(900, 1100), 210)))
+
+            if event.type == noleg_animation_timer:
+                if noleg_index == 0:
+                    noleg_index = 1
+                else:
+                    noleg_index = 0
+                noleg_surface = noleg_frame[noleg_index]
+
+            if event.type == fly_animation_timer:
+                if fly_index == 0:
+                    fly_index = 1
+                else:
+                    fly_index = 0
+                fly_surface = fly_frame[fly_index]
 
     
     if game_active:
@@ -158,6 +213,7 @@ while True:
         if player_rect.bottom >= 285:
             player_rect.bottom = 285
 
+        player_animation()
         screen.blit(player_surface, player_rect)
 
         #Obsta movement
